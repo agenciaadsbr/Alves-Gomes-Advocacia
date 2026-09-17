@@ -89,7 +89,7 @@
     <h1 id="titulo">Só um instante...</h1>
     <p id="texto">Estamos te levando para o WhatsApp do escritório.</p>
     <div class="fallback">
-      Se não for redirecionado automaticamente, <a id="fallback-link" href="#">toque aqui</a>.
+      Se não for redirecionado automaticamente, <a id="fallback-link" href="#" target="_top" rel="noopener">toque aqui</a>.
     </div>
   </div>
 
@@ -113,8 +113,30 @@
   }
 
   setTimeout(function(){
-    window.location.href = destino;
-  }, 3000);
+    irParaWhatsApp();
+  }, 2500);
+
+  // Dentro de um iframe (a LP é embutida no WordPress), o WhatsApp recusa
+  // carregar na moldura por X-Frame-Options. Por isso navegamos a JANELA
+  // INTEIRA (window.top), com fallbacks em cascata.
+  function irParaWhatsApp(){
+    // 1) Navega a página inteira, saindo do iframe.
+    try {
+      if (window.top && window.top !== window.self){
+        window.top.location.href = destino;
+        return;
+      }
+    } catch(e){ /* bloqueio de origem cruzada: cai para o próximo método */ }
+
+    // 2) Fora de iframe: navegação normal.
+    try {
+      window.location.href = destino;
+      return;
+    } catch(e){ /* segue para o último recurso */ }
+
+    // 3) Último recurso: nova aba.
+    window.open(destino, '_blank', 'noopener');
+  }
 </script>
 
 </body>
